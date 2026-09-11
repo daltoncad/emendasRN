@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+    <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
+
+    <title>Raio-X das Emendas Parlamentares | Rio Grande do Norte</title>
+
+    <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=D-m4y-0Zf1mq1v5QjM8OaQ9Ha5Paiv4_WS3NBLBAXYdBgQmXsjOxQEgVZj2lcNYDTZVwIi5dXf9xxqB9rOmKdRu1Vj8pMmenZOM4xI51Y-ecxouS65BNZtO3LrxsoUaFl8uum0pSfjcbTvtvVxLBATPUK0FjfDf0SrP1Api5NshIey9gaFjfiHrLDofH8w6VG7jJ-y_KI9NOHQiKwu3umOOBYcMR5d2W42lQ0Jww0UbnPbojCbyV514Sik_PTY30wMHIclo9mBntBkW7oliTGih3hElkDk-Ohw_gUMLGmQWeMFN784uq4-OeO0taROgl" charset="UTF-8"></script><style>
+        :root {
+            --rx-bg: #ffffff;
+            --rx-text: #17202a;
+            --rx-muted: #66717e;
+            --rx-line: #dce3e9;
+            --rx-soft: #f4f7f9;
+            --rx-green: #176b45;
+            --rx-green-soft: #eaf5ef;
+            --rx-blue: #235f90;
+            --rx-blue-soft: #edf5fb;
+            --rx-yellow: #fff4d6;
+            --rx-yellow-text: #735b00;
+            --rx-shadow: 0 16px 42px rgba(20,34,48,.24);
+        }
+
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body {
+            background: var(--rx-bg);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        #rx-map-title {
+            position: fixed;
+            z-index: 1200;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            text-align: center;
+            background: rgba(255,255,255,.95);
+            border: 1px solid rgba(214,223,230,.98);
+            border-radius: 14px;
+            box-shadow: 0 7px 24px rgba(20,34,48,.15);
+            padding: 9px 16px 8px;
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+        }
+
+        #rx-map-title .rx-title-main {
+            color: var(--rx-text);
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+
+        #rx-map-title .rx-title-sub {
+            color: var(--rx-muted);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            margin-top: 3px;
+            text-transform: uppercase;
+        }
+
+        .ol-control {
+            background: rgba(255,255,255,.58) !important;
+            border-radius: 10px !important;
+            padding: 3px !important;
+            box-shadow: 0 4px 16px rgba(20,34,48,.10);
+        }
+
+        .ol-control > * {
+            background: rgba(255,255,255,.97) !important;
+            color: #3c4650 !important;
+            border-radius: 7px !important;
+            border: 0 !important;
+        }
+
+        .ol-control > *:focus,
+        .ol-control > *:hover {
+            background: #eef3f6 !important;
+        }
+
+        .ol-attribution a,
+        .gcd-gl-input::placeholder,
+        .search-layer-input-search::placeholder {
+            color: #4d5964 !important;
+        }
+
+        .search-layer-input-search {
+            background: rgba(255,255,255,.97) !important;
+        }
+
+        /* Popup */
+        .ol-popup {
+            box-sizing: border-box !important;
+            width: min(610px, calc(100vw - 28px)) !important;
+            min-width: 0 !important;
+            max-width: 610px !important;
+            max-height: min(82vh, 780px) !important;
+            padding: 14px 10px 11px 14px !important;
+            border: 1px solid #d8e0e6 !important;
+            border-radius: 17px !important;
+            background: rgba(255,255,255,.988) !important;
+            box-shadow: var(--rx-shadow) !important;
+        }
+
+        #popup-content {
+            box-sizing: border-box;
+            width: 100%;
+            max-height: calc(min(82vh, 780px) - 28px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2px 8px 5px 1px;
+            color: var(--rx-text);
+            scrollbar-width: thin;
+            scrollbar-color: #b9c3cb transparent;
+        }
+
+        #popup-content::-webkit-scrollbar { width: 7px; }
+        #popup-content::-webkit-scrollbar-track { background: transparent; }
+        #popup-content::-webkit-scrollbar-thumb {
+            background: #b9c3cb;
+            border-radius: 8px;
+        }
+
+        .ol-popup-closer {
+            top: 8px !important;
+            right: 9px !important;
+            z-index: 20;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(238,242,245,.97);
+            box-shadow: 0 1px 5px rgba(0,0,0,.08);
+        }
+        .ol-popup-closer:hover { background: #e1e7eb; }
+
+        /* Card V3.7 */
+        .rx-popup-card {
+            min-width: 0 !important;
+            max-width: none !important;
+            width: 100% !important;
+            box-sizing: border-box;
+            color: var(--rx-text);
+            padding: 1px 2px 3px;
+        }
+
+        .rx-popup-card > div:first-child {
+            padding-right: 36px;
+            color: #14212c;
+            font-size: 20px !important;
+            line-height: 1.18;
+            text-transform: none;
+        }
+
+        .rx-total-box {
+            margin: 9px 0 10px !important;
+            padding: 11px 12px !important;
+            border: 1px solid #cfe5d8 !important;
+            border-radius: 11px !important;
+            background: var(--rx-green-soft) !important;
+            color: #144c34 !important;
+        }
+
+        .rx-beneficiary-title {
+            margin-top: 9px !important;
+            border-radius: 8px !important;
+            background: #edf2f5 !important;
+            color: #2b3945 !important;
+            letter-spacing: .015em;
+            padding: 7px 8px !important;
+        }
+
+        .rx-review-box {
+            border: 1px solid #f0d88b !important;
+            background: var(--rx-yellow) !important;
+            color: var(--rx-yellow-text) !important;
+        }
+
+        .rx-helper {
+            margin: 8px 0 4px;
+            color: #71808c;
+            font-size: 10px;
+            text-align: right;
+        }
+
+        /* Seções principais: Parlamentares / Coletivas */
+        .rx-section-details {
+            margin-top: 10px !important;
+            border: 1px solid #d6dee5 !important;
+            border-radius: 11px !important;
+            background: #fff !important;
+            overflow: hidden;
+        }
+
+        .rx-section-details > summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+            padding: 10px 11px !important;
+            background: #eef2f5 !important;
+            color: #243440 !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            letter-spacing: .02em;
+        }
+
+        .rx-section-details > summary::-webkit-details-marker { display: none; }
+        .rx-section-details > summary::after {
+            content: '+';
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #1769aa;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(23,105,170,.35);
+            transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+        }
+        .rx-section-details > summary:hover::after {
+            background: #0d4f85;
+            transform: scale(1.08);
+            box-shadow: 0 3px 9px rgba(23,105,170,.45);
+        }
+        .rx-section-details[open] > summary::after {
+            content: '−';
+            background: #c94f21;
+            box-shadow: 0 2px 6px rgba(201,79,33,.35);
+        }
+        .rx-section-details[open] > summary:hover::after {
+            background: #a83e18;
+        }
+        .rx-section-body { padding: 6px 8px 9px; }
+
+        /* Cada autor da V3.7 */
+        .rx-author-details {
+            margin: 7px 0 !important;
+            border: 1px solid #dfe4e8 !important;
+            border-radius: 9px !important;
+            background: #fafbfc !important;
+            overflow: hidden;
+        }
+
+        .rx-author-details > summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 9px 9px !important;
+            background: #fafbfc !important;
+            color: #23313d !important;
+            line-height: 1.35 !important;
+        }
+        .rx-author-details > summary::-webkit-details-marker { display:none; }
+        .rx-author-details > summary::after {
+            content: '＋';
+            float: right;
+            margin-left: 9px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e6f0f8;
+            border: 1px solid #9ebdd5;
+            color: #1769aa;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 20px;
+            text-align: center;
+        }
+        .rx-author-details > summary:hover::after {
+            background: #1769aa;
+            border-color: #1769aa;
+            color: #ffffff;
+        }
+        .rx-author-details[open] > summary::after {
+            content: '−';
+            background: #1769aa;
+            border-color: #1769aa;
+            color: #ffffff;
+        }
+
+        .rx-author-details > div {
+            padding-left: 9px !important;
+            padding-right: 9px !important;
+        }
+
+        /* Cards de cada destinação dentro do autor */
+        .rx-author-details div[style*="border:1px solid #e3e6e8"] {
+            border-color: #dfe5e9 !important;
+            box-shadow: 0 1px 2px rgba(20,34,48,.03);
+        }
+
+        .rx-author-details div[style*="text-transform:uppercase"] {
+            color: var(--rx-blue) !important;
+            letter-spacing: .015em;
+        }
+
+        /* V3.7 — destaque do solicitante/apoiador nas autorias coletivas */
+        .rx-requester {
+            margin-top: 6px !important;
+            padding: 6px 8px !important;
+            background: #e8f2ff !important;
+            border: 1px solid #bad6f2 !important;
+            border-left: 4px solid #1769aa !important;
+            border-radius: 6px !important;
+            color: #163e62 !important;
+            font-size: 11px !important;
+            line-height: 1.4 !important;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
+        }
+        .rx-requester b {
+            color: #0d4f85 !important;
+            font-weight: 800 !important;
+        }
+
+        /* V3.7 — fontes institucionais visíveis ao público */
+        .rx-source {
+            display: inline-block !important;
+            margin-top: 5px !important;
+            padding: 4px 7px !important;
+            border-radius: 999px !important;
+            border: 1px solid #d8e2ea !important;
+            background: #f5f8fa !important;
+            color: #4d5c69 !important;
+            font-size: 9px !important;
+            line-height: 1.25 !important;
+            font-weight: 600 !important;
+        }
+        .rx-source-discricionarias {
+            background: #eef7f1 !important;
+            border-color: #c7e3d0 !important;
+            color: #235d39 !important;
+        }
+        .rx-source-parcerias {
+            background: #edf5fb !important;
+            border-color: #c7ddee !important;
+            color: #235f90 !important;
+        }
+        .rx-source-especiais {
+            background: #f5effb !important;
+            border-color: #decbed !important;
+            color: #6a3a8b !important;
+        }
+
+        .rx-methodology {
+            margin-top: 12px !important;
+            padding: 9px 10px !important;
+            border: 1px solid #d9e2e8 !important;
+            border-radius: 9px !important;
+            background: #f8fafb !important;
+            color: #53616d !important;
+            font-size: 10px !important;
+            line-height: 1.5 !important;
+        }
+        .rx-methodology b { color: #283945 !important; }
+
+        .rx-footer {
+            margin-top: 11px !important;
+            padding-top: 9px !important;
+            border-top: 1px solid #e3e8ec;
+            line-height: 1.45 !important;
+        }
+
+        #popup-content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #popup-content td,
+        #popup-content th {
+            vertical-align: top;
+            word-break: break-word;
+        }
+
+        @media (max-width: 640px) {
+            #rx-map-title {
+                top: 8px;
+                max-width: calc(100vw - 96px);
+                padding: 7px 10px 6px;
+            }
+            #rx-map-title .rx-title-main {
+                max-width: calc(100vw - 116px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 12px;
+            }
+            #rx-map-title .rx-title-sub { font-size: 9px; }
+
+            .ol-popup {
+                width: calc(100vw - 18px) !important;
+                max-width: none !important;
+                max-height: 76vh !important;
+                padding: 12px 7px 8px 10px !important;
+            }
+            #popup-content {
+                max-height: calc(76vh - 22px);
+                padding-right: 5px;
+            }
+            .rx-popup-card > div:first-child { font-size: 17px !important; }
+            .rx-author-details > summary { font-size: 11px !important; }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="rx-map-title" aria-hidden="true">
+        <div class="rx-title-main">Raio-X das Emendas Parlamentares</div>
+        <div class="rx-title-sub">Rio Grande do Norte · 2021–2026 · Dados oficiais Transferegov.br</div>
+    </div>
+
+    <div id="map">
+        <div id="popup" class="ol-popup">
+            <a href="#" id="popup-closer" class="ol-popup-closer" aria-label="Fechar"></a>
+            <div id="popup-content"></div>
+        </div>
+    </div>
+
+    <script src="resources/qgis2web_expressions.js"></script>
+    <script src="./resources/functions.js"></script>
+    <script src="./resources/ol.js"></script>
+    <script src="./resources/ol-layerswitcher.js"></script>
+    <script src="resources/photon-geocoder-autocomplete.min.js"></script>
+    <script src="resources/olms.js"></script>
+    <script src="layers/RN_Municipios_REPASSES_0.js"></script>
+    <script src="styles/RN_Municipios_REPASSES_0_style.js"></script>
+    <script src="./layers/layers.js" type="text/javascript"></script>
+    <script src="./resources/Autolinker.min.js"></script>
+    <script src="./resources/qgis2web.js"></script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const popupContent = document.getElementById('popup-content');
+        if (!popupContent) return;
+
+        let processing = false;
+
+        function decodeEntities(value) {
+            const box = document.createElement('textarea');
+            box.innerHTML = value;
+            return box.value;
+        }
+
+        function looksLikeRaiox(value) {
+            return value &&
+                   value.indexOf('Raio-X das emendas') !== -1 &&
+                   value.indexOf('<div') !== -1;
+        }
+
+        function findGeneratedCard(root) {
+            const interpreted = Array.from(root.querySelectorAll('div[style]')).find(function (el) {
+                const style = (el.getAttribute('style') || '').toLowerCase();
+                return style.indexOf('font-family') !== -1 &&
+                       (el.textContent || '').indexOf('Raio-X das emendas') !== -1;
+            });
+            if (interpreted) return interpreted;
+
+            const candidates = Array.from(root.querySelectorAll('td, div, span, p'));
+            for (const el of candidates) {
+                let raw = (el.textContent || '').trim();
+                if (!raw || raw.length < 100) continue;
+                if (raw.indexOf('&lt;div') !== -1) raw = decodeEntities(raw);
+                if (!looksLikeRaiox(raw)) continue;
+
+                const parsed = document.createElement('div');
+                parsed.innerHTML = raw;
+                if (parsed.firstElementChild) return parsed.firstElementChild;
+            }
+            return null;
+        }
+
+        function markKnownBlocks(card) {
+            Array.from(card.children).forEach(function (el) {
+                const text = (el.textContent || '').trim();
+
+                if (text.indexOf('Total territorial identificado') === 0) {
+                    el.classList.add('rx-total-box');
+                }
+                if (text === 'DESTINAÇÃO POR TIPO DE BENEFICIÁRIO') {
+                    el.classList.add('rx-beneficiary-title');
+                }
+                if (text.indexOf('Revisão técnica:') === 0) {
+                    el.classList.add('rx-review-box');
+                }
+                if (text.indexOf('Fontes oficiais:') === 0 || text.indexOf('Fontes:') === 0) {
+                    el.classList.add('rx-footer', 'rx-methodology');
+                }
+            });
+
+            // V3.7: transforma a fonte técnica em selo institucional legível.
+            Array.from(card.querySelectorAll('div')).forEach(function (el) {
+                const ownText = Array.from(el.childNodes)
+                    .filter(function (n) { return n.nodeType === Node.TEXT_NODE; })
+                    .map(function (n) { return (n.textContent || '').trim(); })
+                    .join(' ')
+                    .trim();
+                const t = ownText || (el.children.length === 0 ? (el.textContent || '').trim() : '');
+                if (t.indexOf('Fonte: Transferegov —') !== 0) return;
+
+                el.classList.add('rx-source');
+                if (t.indexOf('Discricionárias e Legais') !== -1) {
+                    el.classList.add('rx-source-discricionarias');
+                } else if (t.indexOf('Gestão de Parcerias') !== -1) {
+                    el.classList.add('rx-source-parcerias');
+                } else if (t.indexOf('Transferências Especiais') !== -1) {
+                    el.classList.add('rx-source-especiais');
+                }
+            });
+
+            // V3.7: realça o parlamentar solicitante/apoiador sem confundir com a autoria coletiva.
+            Array.from(card.querySelectorAll('div')).forEach(function (el) {
+                const t = (el.textContent || '').trim();
+                if (t.indexOf('Solicitante/apoiador:') === 0 ||
+                    t.indexOf('Solicitantes/apoiadores:') === 0) {
+                    el.classList.add('rx-requester');
+                }
+            });
+        }
+
+        function identifyAuthorDetails(card) {
+            Array.from(card.querySelectorAll('details')).forEach(function (details) {
+                if (!details.classList.contains('rx-section-details')) {
+                    details.classList.add('rx-author-details');
+                    details.removeAttribute('open');
+                }
+            });
+        }
+
+        function collapseSection(card, titlePrefix, stopPrefixes) {
+            const children = Array.from(card.children);
+            const heading = children.find(function (el) {
+                return (el.textContent || '').trim().indexOf(titlePrefix) === 0;
+            });
+            if (!heading) return;
+
+            const start = children.indexOf(heading);
+            let end = children.length;
+
+            for (let i = start + 1; i < children.length; i++) {
+                const txt = (children[i].textContent || '').trim();
+                if (stopPrefixes.some(function (p) { return txt.indexOf(p) === 0; }) ||
+                    (txt.indexOf('Fontes oficiais:') === 0 || txt.indexOf('Fontes:') === 0)) {
+                    end = i;
+                    break;
+                }
+            }
+
+            const sectionNodes = children.slice(start + 1, end);
+            const authorCount = sectionNodes.filter(function (el) {
+                return el.tagName === 'DETAILS';
+            }).length;
+
+            const details = document.createElement('details');
+            details.className = 'rx-section-details';
+
+            const summary = document.createElement('summary');
+            const rawTitle = (heading.textContent || '').trim();
+            summary.textContent = rawTitle.match(/\(\d+\)/) ? rawTitle :
+                                  titlePrefix + (authorCount ? ' (' + authorCount + ')' : '');
+
+            const body = document.createElement('div');
+            body.className = 'rx-section-body';
+            sectionNodes.forEach(function (node) { body.appendChild(node); });
+
+            details.appendChild(summary);
+            details.appendChild(body);
+            heading.replaceWith(details);
+        }
+
+        function enhanceCard(card) {
+            if (!card || card.dataset.rxEnhanced === '1') return card;
+
+            card.dataset.rxEnhanced = '1';
+            card.classList.add('rx-popup-card');
+            card.style.minWidth = '0';
+            card.style.maxWidth = 'none';
+            card.style.width = '100%';
+
+            markKnownBlocks(card);
+            identifyAuthorDetails(card);
+
+            // V3.7: cria um nível superior recolhível, mantendo cada autor recolhível por dentro.
+            collapseSection(card, 'PARLAMENTARES', ['EMENDAS COLETIVAS']);
+            collapseSection(card, 'EMENDAS COLETIVAS', []);
+
+            if (card.querySelector('.rx-section-details')) {
+                const helper = document.createElement('div');
+                helper.className = 'rx-helper';
+                helper.textContent = 'Abra a seção e clique no autor para ver cada destinação';
+                const firstSection = card.querySelector('.rx-section-details');
+                card.insertBefore(helper, firstSection);
+            }
+
+            return card;
+        }
+
+        function processPopup() {
+            if (processing) return;
+            processing = true;
+
+            try {
+                if (!popupContent.textContent.trim()) return;
+
+                const current = popupContent.querySelector('.rx-popup-card');
+                if (current) return;
+
+                const found = findGeneratedCard(popupContent);
+                if (!found) return;
+
+                const cleanCard = enhanceCard(found.cloneNode(true));
+                popupContent.replaceChildren(cleanCard);
+            } finally {
+                processing = false;
+            }
+        }
+
+        const observer = new MutationObserver(function () {
+            window.requestAnimationFrame(processPopup);
+        });
+
+        observer.observe(popupContent, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+
+        window.setTimeout(processPopup, 250);
+    })();
+    </script>
+</body>
+</html>
