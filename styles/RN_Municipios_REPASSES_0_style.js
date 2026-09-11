@@ -9,8 +9,8 @@ var style_RN_Municipios_REPASSES_0 = function(feature, resolution){
     
     var labelText = ""; 
     var value = feature.get("VALORTOTAL");
-    var labelFont = "10px, sans-serif";
-    var labelFill = "#000000";
+    var labelFont = "13.0px \'Open Sans\', sans-serif";
+    var labelFill = "#323232";
     var bufferColor = "";
     var bufferWidth = 0;
     var textAlign = 'left';
@@ -19,8 +19,8 @@ var style_RN_Municipios_REPASSES_0 = function(feature, resolution){
     var overflow = false;
     var repeat = 0;
     var placement = 'point';
-    if ("" !== null) {
-        labelText = String("");
+    if (feature.get("NM_MUN") !== null) {
+        labelText = String(feature.get("NM_MUN"));
     }
     if (value >= 2112774.000000 && value <= 5261572.400000) {
             style = [ new ol.style.Style({
