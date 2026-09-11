@@ -15,7 +15,7 @@
 
     <title>Raio-X das Emendas Parlamentares | Rio Grande do Norte</title>
 
-    <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=D-m4y-0Zf1mq1v5QjM8OaQ9Ha5Paiv4_WS3NBLBAXYdBgQmXsjOxQEgVZj2lcNYDTZVwIi5dXf9xxqB9rOmKdRu1Vj8pMmenZOM4xI51Y-ecxouS65BNZtO3LrxsoUaFl8uum0pSfjcbTvtvVxLBATPUK0FjfDf0SrP1Api5NshIey9gaFjfiHrLDofH8w6VG7jJ-y_KI9NOHQiKwu3umOOBYcMR5d2W42lQ0Jww0UbnPbojCbyV514Sik_PTY30wMHIclo9mBntBkW7oliTGih3hElkDk-Ohw_gUMLGmQWeMFN784uq4-OeO0taROgl" charset="UTF-8"></script><style>
+    <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=t-94RCAZBR3-1C8QPzd74G6KESsMj57kNh3tzaslk1cAwURZdSvoqzgSGx7JXwHsaxObSTDImSn4Hc1152MmjDXwVobl5r9b979Rs5Aiz1FV4mvMt9hLmBEU5bt2R-jAxCj6S9Qh2phM_LXdw3CNX9lPQRJ0z2gNXRnfvi2iJ-VE6xbgbTRLrEq33kQm99lBBSPx1F0AzirWxmqPChp6FThPb8QMoJ4aEy2e6cAR0Wkauc3gePKgJHnxHVlAbrCgMq4VPJR_2KuBz6T6bs7BHC8hHbb55pat6Ytmm6GKW-y5wLMg9lVR9ncyIlFb4Ag8EC8XHqWGZBieqH12n_2EBw" charset="UTF-8"></script><style>
         :root {
             --rx-bg: #ffffff;
             --rx-text: #17202a;
@@ -450,6 +450,140 @@
     <script src="./layers/layers.js" type="text/javascript"></script>
     <script src="./resources/Autolinker.min.js"></script>
     <script src="./resources/qgis2web.js"></script>
+
+    <script>
+    /*
+     * Rótulos dos municípios — acabamento visual aplicado no navegador.
+     * Mantém a lógica exportada pelo QGIS2Web e apenas melhora tipografia,
+     * contraste e legibilidade dos nomes municipais.
+     */
+    (function () {
+        'use strict';
+
+        function hasMunicipalityFields(feature) {
+            if (!feature || typeof feature.getProperties !== 'function') return false;
+            const props = feature.getProperties() || {};
+            const keys = Object.keys(props).map(function (k) { return k.toUpperCase(); });
+            return keys.some(function (k) {
+                return k === 'NM_MUN' ||
+                       k === 'MUNICIPIO' ||
+                       k === 'NM_MUNICIPIO' ||
+                       k === 'NOME_MUNICIPIO' ||
+                       k.indexOf('MUNICIP') !== -1;
+            });
+        }
+
+        function isMunicipalityLayer(layer) {
+            if (!layer || typeof layer.getSource !== 'function') return false;
+            const source = layer.getSource();
+            if (!source || typeof source.getFeatures !== 'function') return false;
+
+            const title = String(
+                (typeof layer.get === 'function' && (layer.get('title') || layer.get('name'))) || ''
+            ).toUpperCase();
+
+            if (title.indexOf('MUNICIP') !== -1 || title.indexOf('RN_MUNICIPIOS') !== -1) {
+                return true;
+            }
+
+            const features = source.getFeatures();
+            return features.length > 0 && hasMunicipalityFields(features[0]);
+        }
+
+        function polishTextStyle(textStyle) {
+            if (!textStyle) return;
+
+            // Itálico + negrito, como solicitado.
+            if (typeof textStyle.setFont === 'function') {
+                textStyle.setFont('italic 700 12px Arial, Helvetica, sans-serif');
+            }
+
+            // Azul-grafite institucional: forte, mas não pesa sobre o mapa.
+            if (typeof textStyle.setFill === 'function' && window.ol && ol.style) {
+                textStyle.setFill(new ol.style.Fill({ color: 'rgba(28, 43, 56, 0.96)' }));
+            }
+
+            // Halo branco para manter leitura sobre qualquer preenchimento do município.
+            if (typeof textStyle.setStroke === 'function' && window.ol && ol.style) {
+                textStyle.setStroke(new ol.style.Stroke({
+                    color: 'rgba(255, 255, 255, 0.98)',
+                    width: 3.4
+                }));
+            }
+
+            if (typeof textStyle.setTextAlign === 'function') textStyle.setTextAlign('center');
+            if (typeof textStyle.setTextBaseline === 'function') textStyle.setTextBaseline('middle');
+            if (typeof textStyle.setPadding === 'function') textStyle.setPadding([2, 3, 2, 3]);
+        }
+
+        function polishStyles(styles) {
+            if (!styles) return styles;
+            const list = Array.isArray(styles) ? styles : [styles];
+            list.forEach(function (style) {
+                if (!style || typeof style.getText !== 'function') return;
+                polishTextStyle(style.getText());
+            });
+            return styles;
+        }
+
+        function enhanceLayer(layer) {
+            if (!layer) return 0;
+
+            // Grupos de camadas.
+            if (typeof layer.getLayers === 'function') {
+                let total = 0;
+                layer.getLayers().getArray().forEach(function (child) {
+                    total += enhanceLayer(child);
+                });
+                return total;
+            }
+
+            if (layer.__rxMunicipalityLabelsEnhanced || !isMunicipalityLayer(layer)) return 0;
+            if (typeof layer.getStyle !== 'function' || typeof layer.setStyle !== 'function') return 0;
+
+            const original = layer.getStyle();
+            if (!original) return 0;
+
+            if (typeof original === 'function') {
+                layer.setStyle(function (feature, resolution) {
+                    return polishStyles(original(feature, resolution));
+                });
+            } else {
+                polishStyles(original);
+                layer.setStyle(original);
+            }
+
+            // Evita excesso de nomes sobrepostos em zooms mais afastados.
+            // Quando o usuário aproxima o mapa, mais rótulos ficam disponíveis.
+            if (typeof layer.setDeclutter === 'function') {
+                try { layer.setDeclutter(true); } catch (e) {}
+            }
+
+            layer.__rxMunicipalityLabelsEnhanced = true;
+            if (typeof layer.changed === 'function') layer.changed();
+            return 1;
+        }
+
+        function applyMunicipalityLabelStyle() {
+            if (!window.map || typeof map.getLayers !== 'function') return false;
+            let changed = 0;
+            map.getLayers().getArray().forEach(function (layer) {
+                changed += enhanceLayer(layer);
+            });
+            return changed > 0;
+        }
+
+        // QGIS2Web cria o mapa antes deste bloco, mas fazemos algumas tentativas
+        // para suportar também carregamento mais lento no GitHub Pages/celular.
+        let attempts = 0;
+        const timer = window.setInterval(function () {
+            attempts += 1;
+            if (applyMunicipalityLabelStyle() || attempts >= 20) {
+                window.clearInterval(timer);
+            }
+        }, 200);
+    })();
+    </script>
 
     <script>
     (function () {
