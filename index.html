@@ -728,5 +728,61 @@
         window.setTimeout(processPopup, 250);
     })();
     </script>
+
+    <style>
+    /* Mantém a legenda visível, mas remove a opção visual de desligar a camada principal */
+    .rx-layer-locked input[type="checkbox"] {
+        display: none !important;
+    }
+    .rx-layer-locked label,
+    .rx-layer-locked span {
+        cursor: default !important;
+    }
+    .rx-layer-locked {
+        pointer-events: auto;
+    }
+    .rx-layer-locked .layer-switcher-info,
+    .rx-layer-locked .layer-switcher-fold {
+        pointer-events: auto;
+    }
+    </style>
+    <script>
+    (function () {
+        const layerName = 'RN_Municipios_REPASSES';
+
+        function lockMainLayerEntry() {
+            document.querySelectorAll('.layer-switcher li').forEach(function (item) {
+                const text = (item.textContent || '').replace(/\s+/g, ' ').trim();
+                if (!text.includes(layerName)) return;
+
+                item.classList.add('rx-layer-locked');
+
+                const check = item.querySelector('input[type="checkbox"]');
+                if (check) {
+                    check.checked = true;
+                    check.disabled = true;
+                    check.setAttribute('aria-hidden', 'true');
+                    check.tabIndex = -1;
+                }
+
+                const label = item.querySelector('label');
+                if (label) {
+                    label.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        const observer = new MutationObserver(function () {
+            window.requestAnimationFrame(lockMainLayerEntry);
+        });
+
+        window.addEventListener('load', function () {
+            lockMainLayerEntry();
+            observer.observe(document.body, { childList: true, subtree: true });
+            setTimeout(lockMainLayerEntry, 300);
+            setTimeout(lockMainLayerEntry, 800);
+        });
+    })();
+    </script>
 </body>
 </html>
